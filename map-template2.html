@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+    <style>
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .container{
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+        .map{
+            width: 100%;
+            height: 800px;
+        }
+        .header{
+            padding-top: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="map" id="map"></div>
+</div>
+<script src="https://unpkg.com/leaflet-canvas-marker@0.2.0"></script>
+<script src="points.js"></script> <!-- This will load the points data -->
+<script src="polygons.js"></script> <!-- This will load the points data -->
+
+
+<script>
+    var map = L.map('map').setView([52,21], 10);
+    var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        preferCanvas: true
+    }).addTo(map);
+
+    var ciLayer = L.canvasIconLayer({}).addTo(map);
+
+    ciLayer.addOnClickListener(function (e,data) {console.log(data)});
+    ciLayer.addOnHoverListener(function (e,data) {console.log(data[0].data._leaflet_id)});
+
+    var icon = L.icon({
+        iconUrl: 'x.png',
+        iconSize: [10, 10],
+        iconAnchor: [10, 9]
+    });
+
+    var markers = [];
+
+    for (var i = 0; i < pointsData.length; i++) {
+        var p = pointsData[i];
+        var marker = L.marker([p.lat, p.lng], {icon: icon}).bindPopup("I Am "+i);
+        markers.push(marker);
+    }
+
+    // for (var i = 0; i < 10000; i++) {
+    //     var marker = L.marker([58.5578 + Math.random()*1.8, 29.0087 + Math.random()*3.6], {icon: icon}).bindPopup("I Am "+i);
+    //     markers.push(marker);
+    // }
+
+    ciLayer.addLayers(markers);
+
+    for (var i = 0; i < pointsData2.length ; i+=4) {
+        var redFactor = pointsData2[i].info;
+        var red = 255 * redFactor;
+        var green = 255 * (1 - redFactor);
+        var color = 'rgb(' + red + ',' + green + ',0)';
+        L.polygon([
+            [pointsData2[i].lat, pointsData2[i].lng],
+            [pointsData2[i+1].lat, pointsData2[i+1].lng],
+            [pointsData2[i+2].lat, pointsData2[i+2].lng],
+            [pointsData2[i+3].lat, pointsData2[i+3].lng]
+
+        ], {'color': color}).addTo(map);
+    }
+</script>
+</body>
+</html>
