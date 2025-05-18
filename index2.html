@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>leaflet-markers-canvas example</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/rbush"></script>
+    <script src="leaflet-markers-canvas.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .container {
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+        .map {
+            width: 100%;
+            height: 800px;
+        }
+        .header {
+            padding-top: 50px;
+        }
+
+        .custom-tooltip {
+            font-size: 10px; /* Adjust the font size */
+            padding: 2px 5px; /* Adjust the padding */
+            background-color: white; /* Background color */
+            color: black; /* Text color */
+            border-radius: 3px; /* Rounded corners */
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="map" id="map"></div>
+</div>
+<script src="points.js"></script> <!-- This will load the points data -->
+<script src="regions.js"></script> <!-- This will load the points data -->
+<script>
+
+    var map = L.map('map').setView([52.25,21], 10);
+    var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        preferCanvas: true
+    }).addTo(map);
+
+
+    map.on('zoomend', function() {
+        var zoom = map.getZoom();
+        console.log(zoom)
+        var close =  zoom < 13
+
+        map.eachLayer(function(layer) {
+            if (layer instanceof L.Polygon) {
+                if (close) {
+                    layer.closeTooltip()
+                } else {
+                    layer.openTooltip()
+                }
+            }
+        });
+
+    });
+
+
+    for (var i = 0; i < area.length ; i++) {
+        var redFactor = area[i].redFactor;
+        var red = 255 * redFactor;
+        var green = 255 * (1 - redFactor);
+        var color = 'rgb(' + red + ',' + green + ',0)';
+        var info = area[i].info;
+
+        var polygon = L.polygon(area[i].corners, {'color': color}).addTo(map);
+        var popup =  polygon.bindPopup(info);
+        polygon.bindTooltip(area[i].time,
+                { permanent: true,interactive: true, direction: 'right', className: 'custom-tooltip' })
+            .closeTooltip()
+            .on('click', function () {
+                popup.openPopup();
+            });
+
+        //console.log(area[i].info)
+
+
+
+
+        // var tooltip = L.tooltip({className: 'custom-tooltip', direction: 'right'})
+        //     .setLatLng([pointsData2[i].lat - 0.001, pointsData2[i].lng])
+        //     .setContent(redFactor.substr(0,4))
+        //     .addTo(map);
+    }
+
+
+
+    var markersCanvas = new L.MarkersCanvas();
+
+    markersCanvas.addTo(map);
+
+    var icon = L.icon({
+        iconUrl: "marker.png",
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
+    });
+
+    var markers = [];
+
+
+    for (var i = 0; i < pointsData.length; i++) {
+        var p = pointsData[i];
+
+        var marker = L.marker([p.lat, p.lng], {icon: icon})
+            .bindPopup("I Am " + [p.lat, p.lng])
+            // .on({
+            //     mouseover(e) {
+            //         this.openPopup();
+            //     },
+            //     mouseout(e) {
+            //         this.closePopup();
+            //     },
+            // })
+        ;
+
+        markers.push(marker);
+    }
+
+    markersCanvas.addMarkers(markers);
+</script>
+</body>
+</html>
